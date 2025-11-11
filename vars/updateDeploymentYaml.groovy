@@ -1,15 +1,12 @@
-def call() {
-    echo 'Updating deployment deployment.yaml'
-    sh '''
-    sed -i "s|image: .*|image: $IMAGE_NAME:$BUILD_NUMBER|" $DOCKER_REGISTRY_FILE
-    '''
-    echo 'Deploying to Kubernetes...'
-    withCredentials([
-        string(credentialsId: 'sa-cred', variable: 'TOKEN'),
-        string(credentialsId: 'api-cred', variable: 'APIServer')
-        ]) {
-    sh '''
-    kubectl apply -f deployment.yaml --server \"$APIServer\" --token \"$TOKEN\" --insecure-skip-tls-verify=true
-    '''
-}
+stage('Update Deployment YAML') {
+    steps {
+        script {
+            echo "Updating deployment ${DEPLOYMENT_FILE}"
+            sh "sed -i 's|image:.*|image: ${IMAGE_NAME}:${IMAGE_TAG}|' ${DEPLOYMENT_FILE}"
+            
+            // Verify the update
+            echo "Verifying update..."
+            sh "cat ${DEPLOYMENT_FILE} | grep 'image:'"
+        }
+    }
 }
