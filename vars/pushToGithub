@@ -1,23 +1,39 @@
 def call() {
-    echo "Pushing changes to GitHub branch ${env.BRANCH_NAME}"
-
-    withCredentials([usernamePassword(credentialsId: env.GIT_CRED, usernameVariable: 'GIT_USER', passwordVariable: 'GIT_PASS')]) {
-        sh """
-            git config user.name "rowidarafiek"
+    echo 'Pushing to GitHub...'
+    withCredentials([usernamePassword(credentialsId: env.GIT_CRED, usernameVariable: 'GITHUB_USER', passwordVariable: 'GITHUB_PASSWORD')]) {
+        sh '''
+            echo 'Cleaning up old ArgoCD repo...'
+            rm -rf /tmp/argocd_repo
+            
+            echo 'Cloning ArgoCD repo...'
+            git clone https://${GITHUB_USER}:${GITHUB_PASSWORD}@github.com/rowidarafiek/Argocd.git /tmp/argocd_repo
+            
+            cd /tmp/argocd_repo
+            
+            echo "Checking out to branch: $NAMESPACE"
+            git checkout -B $NAMESPACE
+            
+            echo 'Copying updated deployment.yaml...'
+            cp -r $WORKSPACE/deployment.yaml .
+            
+            echo 'Configuring git user...'
             git config user.email "rowidarafiek@domain.com"
-
-            git checkout -B ${env.BRANCH_NAME}
-
+            git config user.name "${GITHUB_USER}"
+            
+            echo 'Adding deployment.yaml...'
             git add deployment.yaml
-
-            if git diff --staged --quiet; then
-                echo "No changes to commit"
-            else
-                git commit -m "${env.COMMIT_MESSAGE}"
-                git push https://${GIT_USER}:${GIT_PASS}@github.com/rowidarafiek/Argocd.git HEAD:${env.BRANCH_NAME}
-                echo "Changes pushed successfully"
-            fi
-        """
+            
+            echo 'Committing changes...'
+            git commit -m "Update deployment.yaml for $NAMESPACE with image tag $IMAGE_TAG" || echo "No changes to commit"
+            
+            echo "Pushing to GitHub branch: $NAMESPACE"
+            git push https://${GITHUB_USER}:${GITHUB_PASSWORD}@github.com/rowidarafiek/Argocd.git HEAD:$NAMESPACE
+            
+            echo "✅ Updated manifests pushed to ArgoCD repo successfully."
+            
+            echo 'Cleaning up...'
+            cd $WORKSPACE
+            rm -rf /tmp/argocd_repo
+        '''
     }
 }
-
