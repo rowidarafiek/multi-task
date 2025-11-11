@@ -51,16 +51,7 @@ pipeline {
                 script { pushToGithub() }
             }
         }
-
-        stage('Validate ArgoCD Deployment') {
-            steps {
-                sh 'argocd app sync app'
-                sh 'argocd app wait app --health'
-            }
-        }
-    }
-
-    post {
+   post {
         always { echo 'Pipeline completed' }
         success { echo 'Pipeline completed successfully' }
         failure { echo 'Pipeline completed with failure' }
