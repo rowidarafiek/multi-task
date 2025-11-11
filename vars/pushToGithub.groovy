@@ -1,0 +1,39 @@
+def call() {
+    echo 'Pushing to GitHub...'
+    withCredentials([usernamePassword(credentialsId: 'github-pat', usernameVariable: 'GITHUB_USER', passwordVariable: 'GITHUB_PASSWORD')]) {
+        sh '''
+            echo 'Cleaning up old ArgoCD repo...'
+            rm -rf /tmp/argocd_repo
+            
+            echo 'Cloning ArgoCD repo...'
+            git clone https://${GITHUB_USER}:${GITHUB_PASSWORD}@github.com/rowidarafiek/Argocd.git /tmp/argocd_repo
+            
+            cd /tmp/argocd_repo
+            
+            echo "Checking out to branch: $NAMESPACE"
+            git checkout -B $NAMESPACE
+            
+            echo 'Copying updated deployment.yaml...'
+            cp $WORKSPACE/deployment.yaml .
+            
+            echo 'Configuring git user...'
+            git config user.email "rowidarafiek@domain.com"
+            git config user.name "${GITHUB_USER}"
+            
+            echo 'Adding deployment.yaml...'
+            git add deployment.yaml
+            
+            echo 'Committing changes...'
+            git commit -m "Update deployment.yaml for $NAMESPACE with image tag $IMAGE_TAG" || echo "No changes to commit"
+            
+            echo "Pushing to GitHub branch: $NAMESPACE"
+            git push https://${GITHUB_USER}:${GITHUB_PASSWORD}@github.com/rowidarafiek/Argocd.git HEAD:$NAMESPACE
+            
+            echo "✅ Updated manifests pushed to ArgoCD repo successfully."
+            
+            echo 'Cleaning up...'
+            cd $WORKSPACE
+            rm -rf /tmp/argocd_repo
+        '''
+    }
+}
