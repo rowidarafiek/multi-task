@@ -51,7 +51,9 @@ pipeline {
                 script { pushToGithub() }
             }
         }
-   post {
+    }
+
+    post {
         always { echo 'Pipeline completed' }
         success { echo 'Pipeline completed successfully' }
         failure { echo 'Pipeline completed with failure' }
