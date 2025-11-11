@@ -35,5 +35,4 @@ def call() {
             cd $WORKSPACE
             rm -rf /tmp/argocd_repo
         '''
-    }
-}
+    }}
