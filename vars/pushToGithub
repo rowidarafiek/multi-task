@@ -1,6 +1,6 @@
 def call() {
     echo 'Pushing to GitHub...'
-    withCredentials([usernamePassword(credentialsId: env.GIT_CRED, usernameVariable: 'GITHUB_USER', passwordVariable: 'GITHUB_PASSWORD')]) {
+    withCredentials([usernamePassword(credentialsId: 'github-pat', usernameVariable: 'GITHUB_USER', passwordVariable: 'GITHUB_PASSWORD')]) {
         sh '''
             echo 'Cleaning up old ArgoCD repo...'
             rm -rf /tmp/argocd_repo
@@ -14,7 +14,7 @@ def call() {
             git checkout -B $NAMESPACE
             
             echo 'Copying updated deployment.yaml...'
-            cp -r $WORKSPACE/deployment.yaml .
+            cp $WORKSPACE/deployment.yaml .
             
             echo 'Configuring git user...'
             git config user.email "rowidarafiek@domain.com"
