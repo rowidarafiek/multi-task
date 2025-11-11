@@ -1,9 +1,8 @@
 def call() {
-    withCredentials([usernamePassword(credentialsId: 'dockerhub-cred', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASSWORD')]) {
-    echo 'Pushing Docker image to registry...'
-    sh '''
-    docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
-    docker push $IMAGE_NAME:$BUILD_NUMBER
-    '''
+    echo "Pushing Docker image"
+    withCredentials([usernamePassword(credentialsId: "${DOCKER_CREDS}", usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+        sh "echo ${DOCKER_PASS} | docker login -u ${DOCKER_USER} --password-stdin"
+        sh "docker push ${IMAGE_NAME}:${IMAGE_TAG}"
+    }
 }
-}
+
